@@ -208,14 +208,12 @@ const getQRCode = async (user, assetId) => {
     throw { statusCode: 403, message: 'Forbidden' };
   }
 
-  if (!asset.qrCode) {
-    const qrBase64 = await qrService.generateQR(asset.assetCode);
-    await assetRepo.update(assetId, { qrCode: qrBase64 });
-    return qrBase64;
-  }
-
-  return asset.qrCode;
+  // Always regenerate to ensure correct URL
+  const qrBase64 = await qrService.generateQR(asset.assetCode);
+  await assetRepo.update(assetId, { qrCode: qrBase64 });
+  return qrBase64;
 };
+
 
 const updateNotes = async (user, assetId, notes) => {
   const asset = await assetRepo.findById(assetId);
