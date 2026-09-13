@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  super_admin
+  department_manager
+  purchase_person
+  maintenance_person
+  employee
+}
+
+enum AssetStatus {
+  requested
+  purchased
+  delivered
+  unassigned
+  active
+  under_maintenance
+  disposed
+}
+
+enum RequestStatus {
+  pending
+  awaiting_approval
+  approved
+  rejected
+  fulfilled_from_stock
+  purchased
+  delivered
+}
+
+enum RepairStatus {
+  pending
+  in_progress
+  resolved
+}
+
+enum Urgency {
+  low
+  medium
+  high
+}
+
+model Department {
+  id          Int            @id @default(autoincrement())
+  name        String         @unique
+  code        String         @unique
+  description String?
+  createdAt   DateTime       @default(now())
+  users       User[]
+  assets      Asset[]
+  requests    AssetRequest[]
+  budgets     DepartmentBudget[]
+}
+
+model User {
+  id                     Int               @id @default(autoincrement())
+  departmentId           Int
+  fullName               String
+  email                  String            @unique
+  passwordHash           String
+  role                   Role
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+
+  department             Department        @relation(fields: [departmentId], references: [id])
+  createdAssets          Asset[]           @relation("CreatedBy")
+  assetRequests          AssetRequest[]    @relation("RequestedBy")
+  purchases              PurchaseDetail[]  @relation("PurchasedBy")
+  employeeAssignments    AssetAssignment[] @relation("AssignedToEmployee")
+  assignedAssignments    AssetAssignment[] @relation("AssignedByUser")
+  raisedRepairs          RepairRequest[]   @relation("RaisedBy")
+  handledRepairs         RepairRequest[]   @relation("HandledBy")
+  disposals              DisposalRecord[]  @relation("DisposedBy")
+  auditLogs              AuditLog[]
+}
+
+model AssetCategory {
+  id             Int      @id @default(autoincrement())
+  name           String   @unique
+  description    String?
+  assets         Asset[]
+  stockInventory StockInventory[]
+}
+
+model Asset {
+  id             Int               @id @default(autoincrement())
+  departmentId   Int
+  categoryId     Int
+  createdBy      Int
+  assetCode      String            @unique
+  name           String
+  serialNumber   String?
+  modelNumber    String?
+  description    String?
+  status         AssetStatus       @default(unassigned)
+  warrantyExpiry DateTime?
+  condition      String?
+  notes          String?
+  qrCode         String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  department     Department        @relation(fields: [departmentId], references: [id])
+  category       AssetCategory     @relation(fields: [categoryId], references: [id])
+  creator        User              @relation("CreatedBy", fields: [createdBy], references: [id])
+  purchaseDetail PurchaseDetail?
+  assignments    AssetAssignment[]
+  repairRequests RepairRequest[]
+  disposalRecord DisposalRecord?
+  auditLogs      AuditLog[]
+}
+
+model AssetRequest {
+  id            Int             @id @default(autoincrement())
+  departmentId  Int
+  requestedBy   Int
+  assetName     String
+  quantity      Int
+  reason        String
+  status        RequestStatus   @default(pending)
+  estimatedCost Decimal?
+  costNote      String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  department     Department      @relation(fields: [departmentId], references: [id])
+  requester      User            @relation("RequestedBy", fields: [requestedBy], references: [id])
+  purchaseDetail PurchaseDetail?
+}
+
+model PurchaseDetail {
+  id                Int           @id @default(autoincrement())
+  assetId           Int           @unique
+  requestId         Int?          @unique
+  purchasedBy       Int
+  vendorName        String
+  vendorContact     String?
+  invoiceNumber     String
+  unitPrice         Decimal
+  totalAmount       Decimal
+  quantity          Int
+  purchaseDate      DateTime
+  deliveryDate      DateTime?
+  deliveryCondition String?
+  notes             String?
+  createdAt         DateTime      @default(now())
+
+  asset             Asset         @relation(fields: [assetId], references: [id])
+  request           AssetRequest? @relation(fields: [requestId], references: [id])
+  purchaser         User          @relation("PurchasedBy", fields: [purchasedBy], references: [id])
+}
+
+model AssetAssignment {
+  id           Int       @id @default(autoincrement())
+  assetId      Int
+  employeeId   Int
+  assignedById Int
+  assignedDate DateTime
+  returnedDate DateTime?
+  isCurrent    Boolean   @default(true)
+  notes        String?
+  createdAt    DateTime  @default(now())
+
+  asset        Asset     @relation(fields: [assetId], references: [id])
+  employee     User      @relation("AssignedToEmployee", fields: [employeeId], references: [id])
+  assignedBy   User      @relation("AssignedByUser", fields: [assignedById], references: [id])
+}
+
+model RepairRequest {
+  id               Int          @id @default(autoincrement())
+  assetId          Int
+  raisedBy         Int
+  handledBy        Int?
+  issueDescription String
+  urgency          Urgency      @default(medium)
+  status           RepairStatus @default(pending)
+  resolutionNotes  String?
+  raisedAt         DateTime     @default(now())
+  resolvedAt       DateTime?
+  updatedAt        DateTime     @updatedAt
+
+  asset            Asset        @relation(fields: [assetId], references: [id])
+  raiser           User         @relation("RaisedBy", fields: [raisedBy], references: [id])
+  handler          User?        @relation("HandledBy", fields: [handledBy], references: [id])
+}
+
+model DisposalRecord {
+  id           Int      @id @default(autoincrement())
+  assetId      Int      @unique
+  disposedBy   Int
+  reason       String
+  condition    String
+  disposalDate DateTime
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  asset        Asset    @relation(fields: [assetId], references: [id])
+  disposer     User     @relation("DisposedBy", fields: [disposedBy], references: [id])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  assetId     Int?
+  action      String
+  description String
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  asset       Asset?   @relation(fields: [assetId], references: [id])
+}
+
+model StockInventory {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  itemName    String
+  quantity    Int      @default(0)
+  unitPrice   Decimal
+  description String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    AssetCategory @relation(fields: [categoryId], references: [id])
+}
+
+model DepartmentBudget {
+  id              Int      @id @default(autoincrement())
+  departmentId    Int
+  monthYear       String   // Format: YYYY-MM
+  totalBudget     Decimal
+  usedBudget      Decimal  @default(0)
+  remainingBudget Decimal
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  department      Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([departmentId, monthYear])
+}
