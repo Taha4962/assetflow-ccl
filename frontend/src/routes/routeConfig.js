@@ -1,0 +1,58 @@
+import {
+  AdminDashboard,
+  UserManagementPage,
+  DepartmentManagementPage,
+  CategoryManagementPage,
+  ManagerDashboard,
+  AssetRequestsPage,
+  ManagerAssetsPage,
+  AssetDetailPage,
+  CompleteAssetDetailsPage,
+  AssignAssetPage,
+  QRPrintPage,
+  PurchaseDashboard,
+  PurchaseRequestsPage,
+  PurchaseAssetsPage,
+  RegisterAssetPage,
+  MaintenanceDashboard,
+  MaintenanceRequestsPage,
+  EmployeeDashboard,
+  EmployeeAssetsPage,
+  EmployeeRepairsPage,
+  BudgetManagementPage,
+  DepartmentDetailPage,
+  StockManagementPage,
+} from '../pages/pageImports';
+
+const adminRoles = ['super_admin'];
+const managerRoles = ['department_manager', 'super_admin'];
+const purchaseRoles = ['purchase_person', 'super_admin'];
+const maintenanceRoles = ['maintenance_person', 'super_admin'];
+const employeeRoles = ['employee', 'super_admin'];
+
+export const protectedRoutes = [
+  { path: '/admin/dashboard', component: AdminDashboard, allowedRoles: adminRoles },
+  { path: '/admin/users', component: UserManagementPage, allowedRoles: adminRoles },
+  { path: '/admin/departments', component: DepartmentManagementPage, allowedRoles: managerRoles },
+  { path: '/admin/categories', component: CategoryManagementPage, allowedRoles: adminRoles },
+  { path: '/admin/departments/:id/detail', component: DepartmentDetailPage, allowedRoles: adminRoles },
+  { path: '/admin/budgets', component: BudgetManagementPage, allowedRoles: adminRoles },
+  { path: '/admin/stock', component: StockManagementPage, allowedRoles: adminRoles },
+  { path: '/manager/dashboard', component: ManagerDashboard, allowedRoles: managerRoles },
+  { path: '/manager/asset-requests', component: AssetRequestsPage, allowedRoles: managerRoles },
+  { path: '/manager/assets', component: ManagerAssetsPage, allowedRoles: managerRoles },
+  { path: '/manager/assets/:id', component: AssetDetailPage, allowedRoles: managerRoles },
+  { path: '/manager/assets/:id/complete', component: CompleteAssetDetailsPage, allowedRoles: managerRoles },
+  { path: '/manager/assets/:id/assign', component: AssignAssetPage, allowedRoles: managerRoles },
+  { path: '/manager/assets/:id/qr', component: QRPrintPage, allowedRoles: managerRoles },
+  { path: '/purchase/dashboard', component: PurchaseDashboard, allowedRoles: purchaseRoles },
+  { path: '/purchase/requests', component: PurchaseRequestsPage, allowedRoles: purchaseRoles },
+  { path: '/purchase/assets', component: PurchaseAssetsPage, allowedRoles: purchaseRoles },
+  { path: '/purchase/assets/new', component: RegisterAssetPage, allowedRoles: purchaseRoles },
+  { path: '/purchase/stock', component: StockManagementPage, allowedRoles: purchaseRoles },
+  { path: '/maintenance/dashboard', component: MaintenanceDashboard, allowedRoles: maintenanceRoles },
+  { path: '/maintenance/requests', component: MaintenanceRequestsPage, allowedRoles: maintenanceRoles },
+  { path: '/employee/dashboard', component: EmployeeDashboard, allowedRoles: employeeRoles },
+  { path: '/employee/assets', component: EmployeeAssetsPage, allowedRoles: employeeRoles },
+  { path: '/employee/repair-requests', component: EmployeeRepairsPage, allowedRoles: employeeRoles },
+];
