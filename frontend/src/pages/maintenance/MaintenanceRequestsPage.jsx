@@ -91,7 +91,7 @@ export default function MaintenanceRequestsPage() {
                     <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${STATUS_STYLES[r.status]}`}>
                       {r.status.replace('_', ' ')}
                     </span>
-                    <button onClick={() => navigate(`/maintenance/assets/${r.asset?.id}`)} className="text-sm font-bold text-slate-100 hover:text-blue-300 hover:underline text-left">
+                    <button onClick={() => navigate(`/maintenance/assets/${r.asset?.id}`)} className="text-sm font-bold text-slate-100 hover:text-blue-300">
                       {r.asset?.name}
                     </button>
                     <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">{r.asset?.assetCode}</span>

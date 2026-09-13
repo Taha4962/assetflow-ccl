@@ -62,15 +62,17 @@ export default function EmployeeAssetsPage() {
               <div key={a.id} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-teal-500/30 transition-all flex flex-col">
                 <div className="flex-1">
                   <span className="text-[10px] font-mono font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">{a.asset.assetCode}</span>
-                  <button onClick={() => navigate(`/employee/assets/${a.asset.id}`)} className="text-lg font-bold text-slate-100 mt-2 leading-tight text-left hover:text-teal-300 hover:underline">
-                    {a.asset.name}
-                  </button>
+                  <h3 className="text-lg font-bold text-slate-100 mt-2 leading-tight">{a.asset.name}</h3>
                   <p className="text-xs text-slate-400 mt-1">{a.asset.category?.name}</p>
                   <p className="text-xs text-slate-500 mt-3">Assigned: {format(new Date(a.assignedDate), 'dd MMM yyyy')}</p>
                 </div>
                 <button onClick={() => setRepairModal({ show: true, assetId: a.asset.id, assetName: a.asset.name })}
                   className="mt-5 w-full py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-xs font-bold transition-colors flex items-center justify-center gap-2">
                   <Wrench className="w-3.5 h-3.5" /><span>Report Issue</span>
+                </button>
+                <button onClick={() => navigate(`/employee/assets/${a.asset.id}`)}
+                  className="mt-2 w-full py-2 rounded-xl border border-slate-700 hover:border-teal-500/40 text-slate-300 text-xs font-bold transition-colors">
+                  View Asset Details
                 </button>
               </div>
             ))}

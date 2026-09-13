@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useAuth } from '../../context/AuthContext';
 import { getAssetById, unassignAsset, getAssetHistory } from '../../services/assetService';
 import { format } from 'date-fns';
 import {
@@ -9,7 +10,6 @@ import {
   ShoppingBag, Wrench, FileText, ChevronRight, ArrowLeft, AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '../../context/AuthContext';
 
 const STATUS_STYLES = {
   delivered: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
@@ -31,6 +31,12 @@ export default function AssetDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Details');
   const [unassigning, setUnassigning] = useState(false);
+  const isManager = ['department_manager', 'super_admin'].includes(user?.role);
+  const tabs = user?.role === 'employee'
+    ? ['Details', 'Repairs']
+    : user?.role === 'maintenance_person'
+      ? ['Details', 'Repairs', 'Purchase Info']
+      : ['Details', 'Assignments', 'Repairs', 'Purchase Info', 'Audit Trail'];
 
   const fetchAsset = async () => {
     setLoading(true);
@@ -59,9 +65,7 @@ export default function AssetDetailPage() {
   if (loading) return <Layout><LoadingSpinner label="Loading asset details..." /></Layout>;
   if (!asset) return <Layout><div className="text-center text-slate-400 mt-20">Asset not found</div></Layout>;
 
-  const canManage = ['super_admin', 'department_manager'].includes(user?.role);
-  const canViewPurchase = ['super_admin', 'department_manager', 'purchase_person'].includes(user?.role) && asset.purchaseDetail;
-  const tabs = ['Details', ...(asset.assignments ? ['Assignments'] : []), ...(asset.repairRequests ? ['Repairs'] : []), ...(canViewPurchase ? ['Purchase Info'] : []), ...(canManage && asset.auditLogs ? ['Audit Trail'] : [])];
+  const currentAssignment = asset.assignments?.find(a => a.isCurrent);
 
   return (
     <Layout>
@@ -84,25 +88,25 @@ export default function AssetDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
-            {canManage && asset.status === 'delivered' && (
+            {isManager && asset.status === 'delivered' && (
               <button onClick={() => navigate(`/manager/assets/${id}/complete`)}
                 className="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
                 <Edit3 className="w-3.5 h-3.5" /><span>Complete Details</span>
               </button>
             )}
-            {canManage && asset.status === 'unassigned' && (
+            {isManager && asset.status === 'unassigned' && (
               <button onClick={() => navigate(`/manager/assets/${id}/assign`)}
                 className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5" /><span>Assign</span>
               </button>
             )}
-            {canManage && asset.status === 'active' && (
+            {isManager && asset.status === 'active' && (
               <button onClick={handleUnassign} disabled={unassigning}
                 className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50">
                 <UserX className="w-3.5 h-3.5" /><span>{unassigning ? 'Unassigning...' : 'Unassign'}</span>
               </button>
             )}
-            {canManage && !['disposed', 'under_maintenance'].includes(asset.status) && (
+            {isManager && !['disposed', 'under_maintenance'].includes(asset.status) && (
               <>
                 <button onClick={() => navigate(`/manager/assets/${id}/qr`)}
                   className="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
