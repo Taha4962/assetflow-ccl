@@ -49,10 +49,13 @@ export const protectedRoutes = [
   { path: '/purchase/requests', component: PurchaseRequestsPage, allowedRoles: purchaseRoles },
   { path: '/purchase/assets', component: PurchaseAssetsPage, allowedRoles: purchaseRoles },
   { path: '/purchase/assets/new', component: RegisterAssetPage, allowedRoles: purchaseRoles },
+  { path: '/purchase/assets/:id', component: AssetDetailPage, allowedRoles: purchaseRoles },
   { path: '/purchase/stock', component: StockManagementPage, allowedRoles: purchaseRoles },
   { path: '/maintenance/dashboard', component: MaintenanceDashboard, allowedRoles: maintenanceRoles },
   { path: '/maintenance/requests', component: MaintenanceRequestsPage, allowedRoles: maintenanceRoles },
+  { path: '/maintenance/assets/:id', component: AssetDetailPage, allowedRoles: maintenanceRoles },
   { path: '/employee/dashboard', component: EmployeeDashboard, allowedRoles: employeeRoles },
   { path: '/employee/assets', component: EmployeeAssetsPage, allowedRoles: employeeRoles },
+  { path: '/employee/assets/:id', component: AssetDetailPage, allowedRoles: employeeRoles },
   { path: '/employee/repair-requests', component: EmployeeRepairsPage, allowedRoles: employeeRoles },
 ];

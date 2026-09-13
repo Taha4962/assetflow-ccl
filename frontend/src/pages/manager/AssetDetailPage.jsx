@@ -9,6 +9,7 @@ import {
   ShoppingBag, Wrench, FileText, ChevronRight, ArrowLeft, AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
 
 const STATUS_STYLES = {
   delivered: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
@@ -22,11 +23,10 @@ const STATUS_LABELS = {
   under_maintenance: 'Under Maintenance', disposed: 'Disposed',
 };
 
-const TABS = ['Details', 'Assignments', 'Repairs', 'Purchase Info', 'Audit Trail'];
-
 export default function AssetDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [asset, setAsset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Details');
@@ -59,7 +59,9 @@ export default function AssetDetailPage() {
   if (loading) return <Layout><LoadingSpinner label="Loading asset details..." /></Layout>;
   if (!asset) return <Layout><div className="text-center text-slate-400 mt-20">Asset not found</div></Layout>;
 
-  const currentAssignment = asset.assignments?.find(a => a.isCurrent);
+  const canManage = ['super_admin', 'department_manager'].includes(user?.role);
+  const canViewPurchase = ['super_admin', 'department_manager', 'purchase_person'].includes(user?.role) && asset.purchaseDetail;
+  const tabs = ['Details', ...(asset.assignments ? ['Assignments'] : []), ...(asset.repairRequests ? ['Repairs'] : []), ...(canViewPurchase ? ['Purchase Info'] : []), ...(canManage && asset.auditLogs ? ['Audit Trail'] : [])];
 
   return (
     <Layout>
@@ -82,25 +84,25 @@ export default function AssetDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
-            {asset.status === 'delivered' && (
+            {canManage && asset.status === 'delivered' && (
               <button onClick={() => navigate(`/manager/assets/${id}/complete`)}
                 className="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
                 <Edit3 className="w-3.5 h-3.5" /><span>Complete Details</span>
               </button>
             )}
-            {asset.status === 'unassigned' && (
+            {canManage && asset.status === 'unassigned' && (
               <button onClick={() => navigate(`/manager/assets/${id}/assign`)}
                 className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5" /><span>Assign</span>
               </button>
             )}
-            {asset.status === 'active' && (
+            {canManage && asset.status === 'active' && (
               <button onClick={handleUnassign} disabled={unassigning}
                 className="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50">
                 <UserX className="w-3.5 h-3.5" /><span>{unassigning ? 'Unassigning...' : 'Unassign'}</span>
               </button>
             )}
-            {!['disposed', 'under_maintenance'].includes(asset.status) && (
+            {canManage && !['disposed', 'under_maintenance'].includes(asset.status) && (
               <>
                 <button onClick={() => navigate(`/manager/assets/${id}/qr`)}
                   className="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
@@ -117,7 +119,7 @@ export default function AssetDetailPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 border-b border-slate-800 overflow-x-auto">
-          {TABS.map(tab => (
+          {tabs.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === tab ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'

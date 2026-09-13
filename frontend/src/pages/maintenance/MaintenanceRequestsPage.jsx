@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { getRepairRequests, updateRepairStatus } from '../../services/repairService';
@@ -13,6 +14,7 @@ const STATUS_STYLES = {
 };
 
 export default function MaintenanceRequestsPage() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -89,7 +91,9 @@ export default function MaintenanceRequestsPage() {
                     <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase ${STATUS_STYLES[r.status]}`}>
                       {r.status.replace('_', ' ')}
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">{r.asset?.name}</h3>
+                    <button onClick={() => navigate(`/maintenance/assets/${r.asset?.id}`)} className="text-sm font-bold text-slate-100 hover:text-blue-300 hover:underline text-left">
+                      {r.asset?.name}
+                    </button>
                     <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">{r.asset?.assetCode}</span>
                     <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">{r.asset?.department?.code}</span>
                   </div>

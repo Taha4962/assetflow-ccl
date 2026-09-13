@@ -3,6 +3,47 @@ const departmentRepo = require('../repositories/department.repository');
 const auditRepo = require('../repositories/audit.repository');
 const qrService = require('./qr.service');
 
+const getAssetForRole = (asset, user) => {
+  if (user.role === 'super_admin' || user.role === 'department_manager') return asset;
+
+  const baseDetails = {
+    id: asset.id,
+    departmentId: asset.departmentId,
+    categoryId: asset.categoryId,
+    assetCode: asset.assetCode,
+    name: asset.name,
+    serialNumber: asset.serialNumber,
+    modelNumber: asset.modelNumber,
+    description: asset.description,
+    status: asset.status,
+    warrantyExpiry: asset.warrantyExpiry,
+    condition: asset.condition,
+    notes: asset.notes,
+    createdAt: asset.createdAt,
+    updatedAt: asset.updatedAt,
+    department: asset.department,
+    category: asset.category,
+  };
+
+  if (user.role === 'purchase_person') {
+    return { ...baseDetails, purchaseDetail: asset.purchaseDetail };
+  }
+
+  if (user.role === 'maintenance_person') {
+    return { ...baseDetails, assignments: asset.assignments, repairRequests: asset.repairRequests };
+  }
+
+  if (user.role === 'employee') {
+    return {
+      ...baseDetails,
+      assignments: asset.assignments?.filter((assignment) => assignment.employeeId === user.id && assignment.isCurrent),
+      repairRequests: asset.repairRequests?.filter((request) => request.raisedBy === user.id),
+    };
+  }
+
+  return null;
+};
+
 const generateAssetCode = async (departmentId, year) => {
   const dept = await departmentRepo.findById(departmentId);
   if (!dept) throw { statusCode: 404, message: 'Department not found' };
@@ -124,7 +165,21 @@ const getAssetById = async (user, assetId) => {
     throw { statusCode: 403, message: 'Forbidden: Asset belongs to another department' };
   }
 
-  return asset;
+  if (user.role === 'purchase_person' && asset.createdBy !== user.id) {
+    throw { statusCode: 403, message: 'Forbidden: Asset was not registered by your account' };
+  }
+
+  if (user.role === 'maintenance_person' && asset.departmentId !== user.departmentId) {
+    throw { statusCode: 403, message: 'Forbidden: Asset belongs to another department' };
+  }
+
+  if (user.role === 'employee' && !asset.assignments?.some(
+    (assignment) => assignment.employeeId === user.id && assignment.isCurrent
+  )) {
+    throw { statusCode: 403, message: 'Forbidden: Asset is not currently assigned to you' };
+  }
+
+  return getAssetForRole(asset, user);
 };
 
 const getAssetHistory = async (user, assetId) => {

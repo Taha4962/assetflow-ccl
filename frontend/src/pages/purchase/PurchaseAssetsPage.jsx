@@ -81,7 +81,11 @@ export default function PurchaseAssetsPage() {
                     </td></tr>
                   ) : assets.map(asset => (
                     <tr key={asset.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="px-4 py-3 font-mono text-violet-400 font-semibold">{asset.assetCode}</td>
+                      <td className="px-4 py-3 font-mono font-semibold">
+                        <button onClick={() => navigate(`/purchase/assets/${asset.id}`)} className="text-violet-400 hover:text-violet-300 hover:underline">
+                          {asset.assetCode}
+                        </button>
+                      </td>
                       <td className="px-4 py-3 text-slate-300">{asset.department?.code}</td>
                       <td className="px-4 py-3 text-slate-300">{asset.purchaseDetail?.vendorName || '—'}</td>
                       <td className="px-4 py-3 text-slate-300 font-mono text-[10px]">{asset.purchaseDetail?.invoiceNumber || '—'}</td>

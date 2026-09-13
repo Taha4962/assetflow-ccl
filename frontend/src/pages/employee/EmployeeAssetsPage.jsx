@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Layout from '../../components/layout/Layout';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 
 export default function EmployeeAssetsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [repairModal, setRepairModal] = useState({ show: false, assetId: null, assetName: '' });
@@ -60,7 +62,9 @@ export default function EmployeeAssetsPage() {
               <div key={a.id} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-teal-500/30 transition-all flex flex-col">
                 <div className="flex-1">
                   <span className="text-[10px] font-mono font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">{a.asset.assetCode}</span>
-                  <h3 className="text-lg font-bold text-slate-100 mt-2 leading-tight">{a.asset.name}</h3>
+                  <button onClick={() => navigate(`/employee/assets/${a.asset.id}`)} className="text-lg font-bold text-slate-100 mt-2 leading-tight text-left hover:text-teal-300 hover:underline">
+                    {a.asset.name}
+                  </button>
                   <p className="text-xs text-slate-400 mt-1">{a.asset.category?.name}</p>
                   <p className="text-xs text-slate-500 mt-3">Assigned: {format(new Date(a.assignedDate), 'dd MMM yyyy')}</p>
                 </div>
