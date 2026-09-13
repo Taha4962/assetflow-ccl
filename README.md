@@ -236,6 +236,10 @@ asset-flow/
 │   │   │   │   ├── MaintenanceDashboard.jsx
 │   │   │   │   └── NotFoundPage.jsx
 │   │   │   └── AssetScanPage.jsx
+|   |   │   └── pageImports.js
+│   │   ├── routes/
+│   |   |   ├── ProtectedRoleRoute.jsx
+│   |   |   └── routeConfig.js
 │   │   ├── services/
 │   │   │   ├── api.js
 │   │   │   ├── authService.js
